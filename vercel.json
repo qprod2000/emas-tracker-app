@@ -1,0 +1,4 @@
+{
+  "functions": { "api/gold.ts": { "maxDuration": 30 } },
+  "crons": [{ "path": "/api/gold?action=refresh", "schedule": "30 1 * * *" }]
+}
