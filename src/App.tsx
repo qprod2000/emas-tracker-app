@@ -22,6 +22,25 @@ function EmptyNotice({ title, text }: { title: string; text: string }) {
   );
 }
 
+function BullionNote({ data }: { data: GoldData }) {
+  const m = data.bullionMeta;
+  if (!m) return null;
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3 text-[11px] leading-relaxed text-slate-400 space-y-1">
+      <p>
+        <strong className="text-slate-200">Antam:</strong> harga beli per gramasi dari Logam Mulia
+        {m.antamDay ? ` (${m.antamDay})` : ''}. Buyback dihitung dari buyback per gram{' '}
+        {m.antamBuybackEstimate ? 'yang masih estimasi (isi lewat Koreksi Manual agar akurat)' : 'hasil input manual'}.
+      </p>
+      <p>
+        <strong className="text-slate-200">Galeri 24 dan UBS:</strong> harga gerai Galeri 24
+        {m.galeri24Day ? ` (${m.galeri24Day})` : ''}, lengkap dengan buyback dari sumber.
+      </p>
+      {m.stale && <p className="text-amber-300">Peringatan: sebagian data tabel sudah lebih dari 3 hari.</p>}
+    </div>
+  );
+}
+
 export default function App() {
   const [data, setData] = useState<GoldData | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -279,7 +298,10 @@ export default function App() {
         {activeTab === 'bullion' && (
           <div className="space-y-6 animate-in fade-in duration-200">
             {hasBullion ? (
-              <BullionTable data={data} onSelectForCalculator={handleSelectForCalculator} />
+              <>
+                <BullionNote data={data} />
+                <BullionTable data={data} onSelectForCalculator={handleSelectForCalculator} />
+              </>
             ) : (
               <EmptyNotice
                 title="Tabel harga batangan belum tersedia"

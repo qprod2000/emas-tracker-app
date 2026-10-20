@@ -103,4 +103,11 @@ export interface GoldData {
   calibration?: { premium: number; premiumDay: string | null; buybackRatio: number };
   spotUsdOz?: number | null;
   usdIdr?: number | null;
+  bullionMeta?: {
+    antamDay: string | null;
+    galeri24Day: string | null;
+    ubsDay: string | null;
+    antamBuybackEstimate: boolean;
+    stale: boolean;
+  };
 }

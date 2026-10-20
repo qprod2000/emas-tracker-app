@@ -4,7 +4,7 @@ import { GoogleGenAI } from '@google/genai';
 
 // ---------- konstanta ----------
 const OZ_TO_GRAM = 31.1034768;
-const ANTAM_API = 'https://logam-mulia-api.iamutaki.workers.dev'; // tidak resmi, men-scrape logammulia.com
+const ANTAM_API = 'https://logam-mulia-api.iamutaki.workers.dev'; // tidak resmi, men-scrape situs penjual emas
 const DEFAULT_PREMIUM = 1.065; // hanya dipakai sebelum ada data Antam resmi
 const DEFAULT_BUYBACK_RATIO = 0.9416; // estimasi; kalibrasi lewat input manual
 const OFFICIAL_FRESH_DAYS = 3;
@@ -23,6 +23,9 @@ type Row = {
 };
 type Cal = { premium: number; premiumDay: string | null; buybackRatio: number };
 type Pt = { day: string; buy: number; sell: number; official: boolean; buybackManual: boolean; fetchedAt: string | null };
+type BItem = { w: number; buy: number; sell: number | null };
+type BTable = { day: string; items: BItem[] };
+type BullionSnap = { fetchedAt: string; antam: BTable | null; galeri24: BTable | null; ubs: BTable | null };
 
 // ---------- util ----------
 const r1000 = (n: number) => Math.round(n / 1000) * 1000;
@@ -99,6 +102,7 @@ function isAdmin(req: VercelRequest): boolean {
 }
 
 // ---------- sumber 1: Antam resmi (via API komunitas) ----------
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const okAntam = (r: any) =>
   r &&
   r.material === 'gold' &&
@@ -106,15 +110,79 @@ const okAntam = (r: any) =>
   Number(r.weight) === 1 &&
   Number(r.sellPrice) >= 500000 &&
   Number(r.sellPrice) <= 20000000 &&
-  /^\d{4}-\d{2}-\d{2}$/.test(String(r.recordedDate));
+  DATE_RE.test(String(r.recordedDate));
+
+// ---------- tabel gramasi (snapshot terbaru) ----------
+function pickAntamTable(rows: any[]): BTable | null {
+  const m = new Map<number, { day: string; buy: number }>();
+  for (const r of rows) {
+    if (!r || r.material !== 'gold' || r.materialType !== 'Emas Batangan') continue;
+    const w = Number(r.weight), buy = Math.round(Number(r.sellPrice)), day = String(r.recordedDate);
+    if (!(w > 0) || !(buy > 0) || !DATE_RE.test(day)) continue;
+    const prev = m.get(w);
+    if (!prev || day > prev.day) m.set(w, { day, buy });
+  }
+  if (!m.size) return null;
+  const items: BItem[] = [...m.entries()].sort((a, b) => a[0] - b[0]).map(([w, v]) => ({ w, buy: v.buy, sell: null }));
+  const day = [...m.values()].map((v) => v.day).sort().pop()!;
+  return { day, items };
+}
+
+function pickBrandTable(rows: any[], type: string): BTable | null {
+  const m = new Map<number, { day: string; buy: number; sell: number }>();
+  for (const r of rows) {
+    if (!r || r.material !== 'gold' || r.materialType !== type) continue;
+    const w = Number(r.weight), buy = Math.round(Number(r.sellPrice)), sell = Math.round(Number(r.buybackPrice));
+    const day = String(r.recordedDate);
+    if (!(w > 0) || !(buy > 0) || !(sell > 0) || !DATE_RE.test(day)) continue;
+    const prev = m.get(w);
+    if (!prev || day > prev.day) m.set(w, { day, buy, sell });
+  }
+  if (!m.size) return null;
+  const items: BItem[] = [...m.entries()].sort((a, b) => a[0] - b[0]).map(([w, v]) => ({ w, buy: v.buy, sell: v.sell }));
+  const day = [...m.values()].map((v) => v.day).sort().pop()!;
+  return { day, items };
+}
+
+async function readBullion(sql: Sql): Promise<BullionSnap | null> {
+  const r = await sql`SELECT value FROM gold_settings WHERE key = 'bullion'`;
+  return (r[0]?.value as BullionSnap) ?? null;
+}
+
+async function refreshBullion(sql: Sql, antamRows: any[]) {
+  const prev = await readBullion(sql);
+  const snap: BullionSnap = {
+    fetchedAt: new Date().toISOString(),
+    antam: prev?.antam ?? null,
+    galeri24: prev?.galeri24 ?? null,
+    ubs: prev?.ubs ?? null,
+  };
+  const errors: string[] = [];
+  const a = pickAntamTable(antamRows);
+  if (a) snap.antam = a;
+  try {
+    const j = await fetchJson(`${ANTAM_API}/api/prices/galeri24`, 7000);
+    const rows: any[] = j?.data || [];
+    const g = pickBrandTable(rows, 'GALERI 24');
+    if (g) snap.galeri24 = g;
+    const u = pickBrandTable(rows, 'UBS');
+    if (u) snap.ubs = u;
+  } catch (e) {
+    errors.push(errMsg(e));
+  }
+  await sql`INSERT INTO gold_settings (key, value) VALUES ('bullion', ${JSON.stringify(snap)}::jsonb)
+    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`;
+  return { errors };
+}
 
 async function refreshAntam(sql: Sql, force: boolean) {
   if (!force) {
     const a = await sql`SELECT extract(epoch from (now() - max(fetched_at))) AS age FROM antam_prices WHERE origin = 'logammulia'`;
-    if (a[0]?.age != null && Number(a[0].age) < 2 * 3600) return { skipped: true };
+    if (a[0]?.age != null && Number(a[0].age) < 2 * 3600) return { skipped: true as const };
   }
-  const j = await fetchJson(`${ANTAM_API}/api/prices/logammulia`, 6000);
-  const rows = (j?.data || []).filter(okAntam);
+  const j = await fetchJson(`${ANTAM_API}/api/prices/logammulia`, 7000);
+  const all: any[] = j?.data || [];
+  const rows = all.filter(okAntam);
   if (!rows.length) throw new Error('Data Antam kosong/tidak valid dari API komunitas');
   rows.sort((a: any, b: any) => String(a.recordedDate).localeCompare(String(b.recordedDate)));
   const p = rows[rows.length - 1];
@@ -122,7 +190,8 @@ async function refreshAntam(sql: Sql, force: boolean) {
   await sql`INSERT INTO antam_prices (day, buy, origin) VALUES (${p.recordedDate}, ${buy}, 'logammulia')
     ON CONFLICT (day) DO UPDATE SET buy = EXCLUDED.buy, fetched_at = now()
     WHERE antam_prices.origin <> 'manual'`;
-  return { skipped: false, day: p.recordedDate as string, buy };
+  const bullion = await refreshBullion(sql, all);
+  return { skipped: false as const, day: p.recordedDate as string, buy, bullionErrors: bullion.errors };
 }
 
 async function backfillAntam(sql: Sql) {
@@ -209,12 +278,14 @@ async function backfillGold(sql: Sql, days: number) {
   return { inserted: D.length, from: D[0], to: D[D.length - 1] };
 }
 
-async function refreshAll(sql: Sql, force = false) {
+async function refreshAll(sql: Sql, force = false, forceAntam = false) {
   const errors: Record<string, string> = {};
   const [gold, antam] = await Promise.all([
     refreshGold(sql, force).catch((e) => { errors.xau = errMsg(e); return null; }),
-    refreshAntam(sql, force).catch((e) => { errors.antam = errMsg(e); return null; }),
+    refreshAntam(sql, force || forceAntam).catch((e) => { errors.antam = errMsg(e); return null; }),
   ]);
+  const be = (antam as any)?.bullionErrors as string[] | undefined;
+  if (be && be.length) errors.galeri24 = be.join('; ');
   return { gold, antam, errors };
 }
 
@@ -292,14 +363,38 @@ function formatWIB(iso: string | null): string {
   return s.replace(/\./g, ':') + ' WIB';
 }
 function formatDay(day: string): string {
-  const s = new Date(day + 'T12:00:00Z').toLocaleDateString('id-ID', {
+  return new Date(day + 'T12:00:00Z').toLocaleDateString('id-ID', {
     timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   });
-  return s;
+}
+
+function buildBullion(snap: BullionSnap | null, perGramBuyback: number, antamBuybackEstimate: boolean) {
+  const label = (w: number) => `${w} gram`;
+  const antam = (snap?.antam?.items ?? []).map((i) => ({
+    weight: label(i.w), weightNum: i.w, buy: i.buy, sell: r1000(perGramBuyback * i.w),
+  }));
+  const brand = (t: BTable | null | undefined) =>
+    (t?.items ?? []).filter((i) => i.sell != null).map((i) => ({
+      weight: label(i.w), weightNum: i.w, buy: i.buy, sell: i.sell as number,
+    }));
+  const today = todayWIB();
+  const days = [snap?.antam?.day, snap?.galeri24?.day, snap?.ubs?.day].filter(Boolean) as string[];
+  const stale = days.length > 0 && days.some((d) => daysBetween(d, today) > OFFICIAL_FRESH_DAYS);
+  return {
+    bullionPrices: { Antam: antam, Galeri24: brand(snap?.galeri24), UBS: brand(snap?.ubs) },
+    bullionMeta: {
+      antamDay: snap?.antam?.day ?? null,
+      galeri24Day: snap?.galeri24?.day ?? null,
+      ubsDay: snap?.ubs?.day ?? null,
+      antamBuybackEstimate,
+      stale,
+    },
+  };
 }
 
 async function actionData(sql: Sql) {
-  const refresh = await refreshAll(sql);
+  const snap0 = await readBullion(sql);
+  const refresh = await refreshAll(sql, false, !snap0); // paksa ambil tabel gramasi bila belum ada
   const rows = await loadRows(sql, 450);
   if (!rows.length) {
     throw new Error('Belum ada data. Jalankan backfill dulu. ' + Object.values(refresh.errors).join(' | '));
@@ -315,6 +410,8 @@ async function actionData(sql: Sql) {
   const dir = (n: number) => (n > 0 ? 'up' : n < 0 ? 'down' : 'flat');
   const pct = (d: number, base: number) => (base ? r2((d / base) * 100) : 0);
   const baseRow = [...rows].reverse().find((r) => r.base_idr_gram != null);
+  const snap = await readBullion(sql);
+  const bullion = buildBullion(snap, latest.sell, !latest.buybackManual);
 
   return {
     lastUpdated: latest.official ? `Harga per ${formatDay(latest.day)}` : formatWIB(latest.fetchedAt),
@@ -348,8 +445,8 @@ async function actionData(sql: Sql) {
       '6M': histPoints(pts, 183, 26, 'd'),
       '1Y': histPoints(pts, 365, 26, 'm'),
     },
-    // Belum ada sumber terverifikasi untuk tabel batangan multi-gramasi & berita.
-    bullionPrices: { Antam: [], Galeri24: [], UBS: [] },
+    bullionPrices: bullion.bullionPrices,
+    bullionMeta: bullion.bullionMeta,
     news: [],
   };
 }
@@ -365,7 +462,7 @@ async function actionManual(sql: Sql, req: VercelRequest) {
   if (sell != null && (!isFinite(sell) || sell < 400000 || sell > 20000000)) throw new Error('Harga buyback tidak valid');
   if (buy != null && sell != null && sell > buy) throw new Error('Buyback tidak boleh lebih tinggi dari harga beli');
   const day = String(body.day || todayWIB());
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new Error('Format tanggal harus YYYY-MM-DD');
+  if (!DATE_RE.test(day)) throw new Error('Format tanggal harus YYYY-MM-DD');
   await sql`INSERT INTO antam_prices (day, buy, buyback, origin)
     VALUES (${day}, ${buy}, ${sell}, ${buy != null ? 'manual' : 'logammulia'})
     ON CONFLICT (day) DO UPDATE SET
@@ -519,6 +616,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const result: Record<string, unknown> = {};
       try { result.antam = await backfillAntam(sql); } catch (e) { result.antamError = errMsg(e); }
       try { result.xau = await backfillGold(sql, days); } catch (e) { result.xauError = errMsg(e); }
+      try { result.tabel = await refreshAntam(sql, true); } catch (e) { result.tabelError = errMsg(e); }
       return res.status(200).json({ success: true, result });
     }
     return res.status(400).json({ success: false, error: 'action tidak dikenal' });
