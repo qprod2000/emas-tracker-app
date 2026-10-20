@@ -14,6 +14,7 @@ export interface HistoryPoint {
   fullDate: string;
   buy: number;
   sell: number;
+  official?: boolean; // true = harga Antam resmi, false/undefined = estimasi
 }
 
 export interface BullionItem {
@@ -38,7 +39,7 @@ export interface KompasNewsItem {
 export interface AIPrediction {
   summary: string;
   marketSentiment: 'BULLISH' | 'BEARISH' | 'NEUTRAL';
-  confidenceScore: number;
+  confidenceScore: number | null;
   predictedRange: {
     nextDayMin: number;
     nextDayMax: number;
@@ -68,6 +69,12 @@ export interface AIPrediction {
   disclaimer: string;
 }
 
+export interface PredictionMeta {
+  engine: string;
+  engineError: string | null;
+  basedOnDays: number | null;
+}
+
 export interface GoldData {
   lastUpdated: string;
   source: string;
@@ -85,4 +92,15 @@ export interface GoldData {
     UBS: BullionItem[];
   };
   news: KompasNewsItem[];
+  // field tambahan dari /api/gold
+  priceDate?: string;
+  fetchedAt?: string | null;
+  isEstimate?: boolean;
+  buybackIsEstimate?: boolean;
+  officialFresh?: boolean;
+  lastOfficialDay?: string | null;
+  errors?: Record<string, string>;
+  calibration?: { premium: number; premiumDay: string | null; buybackRatio: number };
+  spotUsdOz?: number | null;
+  usdIdr?: number | null;
 }
