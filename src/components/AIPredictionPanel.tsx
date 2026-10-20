@@ -147,7 +147,7 @@ export const AIPredictionPanel: React.FC<AIPredictionPanelProps> = ({
 
               <span className="text-xs text-slate-400 flex items-center gap-1">
                 <Gauge className="w-3.5 h-3.5 text-amber-400" />
-                Keyakinan Model: <strong className="text-white">{prediction.confidenceScore}%</strong>
+                {prediction.confidenceScore ? (<>Keyakinan Model: <strong className="text-white">{prediction.confidenceScore}%</strong></>) : (<>Proyeksi dari indikator teknikal (tanpa skor keyakinan)</>)}
               </span>
             </div>
 
