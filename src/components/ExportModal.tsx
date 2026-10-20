@@ -97,7 +97,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
               },
               {
                 id: 'bullion',
-                label: 'Daftar Pecahan Emas Batangan (Antam, Galeri 24, UBS)',
+                label: 'Daftar Pecahan Emas Batangan (bila tersedia)',
                 desc: 'Tabel lengkap pecahan 0.5 gr s/d 1000 gr beserta harga beli, harga jual, dan spread.',
                 checked: includeBullion,
                 toggle: () => setIncludeBullion(!includeBullion),
@@ -105,13 +105,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({
               {
                 id: 'history',
                 label: 'Riwayat Tren Deret Waktu (1 Minggu, 1 Bulan, 6 Bulan, 1 Tahun)',
-                desc: 'Histori pergerakan harga kompas untuk analisis teknikal.',
+                desc: 'Histori pergerakan harga Antam untuk analisis teknikal.',
                 checked: includeHistory,
                 toggle: () => setIncludeHistory(!includeHistory),
               },
               {
                 id: 'ai',
-                label: 'Hasil Analisis & Prediksi AI Gemini + Sentimen Berita Kompas',
+                label: 'Proyeksi Harga (teknikal + narasi AI)',
                 desc: 'Target harga masa depan, skor keyakinan, dan ringkasan katalis berita.',
                 checked: includeAI,
                 toggle: () => setIncludeAI(!includeAI),

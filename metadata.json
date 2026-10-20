@@ -1,6 +1,6 @@
 {
-  "name": "Harga Emas Antam & Kompas Tracker - Visualisasi, Ekspor & Prediksi AI",
-  "description": "Dasbor interaktif pemantau harga emas harian terlengkap dari Kompas.com, Antam, Galeri24, dan UBS dengan visualisasi tren, kalkulator konversi, ekspor Excel/PDF, serta analisis prediksi tren berbasis AI dan berita terkini.",
+  "name": "Harga Emas Antam Tracker - Grafik, Ekspor dan Proyeksi Harga",
+  "description": "Dasbor pemantau harga emas Antam (Logam Mulia) dengan grafik riwayat, ekspor Excel/PDF, dan proyeksi tren harga.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

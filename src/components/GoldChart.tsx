@@ -375,7 +375,7 @@ export const GoldChart: React.FC<GoldChartProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-400 gap-2 pt-1">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" />
-          <span>Data Historis Resmi Kompas / Antam / Galeri 24</span>
+          <span>Riwayat harga Antam (Logam Mulia). Periode lebih lama berupa estimasi dari XAU/USD x kurs.</span>
           {showPredictionOverlay && prediction && (
             <span className="flex items-center gap-1.5 ml-2 text-amber-300">
               <span className="w-2.5 h-2.5 rounded-full bg-yellow-300 inline-block border border-amber-600" />

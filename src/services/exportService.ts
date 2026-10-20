@@ -16,7 +16,7 @@ export const exportToExcel = (data: GoldData, prediction?: AIPrediction | null) 
 
   // Sheet 1: Ringkasan Pasar
   const summaryRows: (string | number)[][] = [
-    ['LAPORAN HARGA EMAS HARIAN - SUMBER: KOMPAS.COM'],
+    ['LAPORAN HARGA EMAS HARIAN - SUMBER: LOGAM MULIA (ANTAM)'],
     ['Waktu Pembaruan:', data.lastUpdated],
     ['Sumber Data:', data.source],
     ['Tautan Sumber:', data.sourceUrl],
@@ -46,7 +46,7 @@ export const exportToExcel = (data: GoldData, prediction?: AIPrediction | null) 
   if (prediction) {
     summaryRows.push(
       [],
-      ['PREDIKSI & SENTIMEN AI (BERBASIS BERITA KOMPAS)', ''],
+      ['PROYEKSI HARGA (TEKNIKAL + NARASI AI)', ''],
       ['Sentimen Pasar:', prediction.marketSentiment],
       ['Skor Keyakinan:', `${prediction.confidenceScore}%`],
       ['Prediksi Rentang Besok (Min):', prediction.predictedRange.nextDayMin],
@@ -110,7 +110,7 @@ export const exportToExcel = (data: GoldData, prediction?: AIPrediction | null) 
   const wsNews = XLSX.utils.aoa_to_sheet(newsRows);
   XLSX.utils.book_append_sheet(wb, wsNews, 'Berita & Sentimen');
 
-  const filename = `Data_Harga_Emas_Kompas_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  const filename = `Data_Harga_Emas_Antam_${new Date().toISOString().slice(0, 10)}.xlsx`;
   XLSX.writeFile(wb, filename);
 };
 
@@ -262,12 +262,12 @@ export const exportToPDF = (data: GoldData, prediction?: AIPrediction | null) =>
   doc.setFontSize(7.5);
   doc.setTextColor(148, 163, 184);
   doc.text(
-    '* Catatan: Harga emas dapat berubah sewaktu-waktu sesuai pembaruan pasar resmi Antara, Antam, Galeri 24, dan UBS.',
+    '* Catatan: Harga emas dapat berubah sewaktu-waktu. Sumber: Logam Mulia (Antam); estimasi dihitung dari XAU/USD dan kurs USD/IDR.',
     14,
     pageHeight - 10
   );
-  doc.text(`Dicetak via Kompas Emas Tracker & AI Analytics`, 140, pageHeight - 10);
+  doc.text(`Dicetak via Emas Tracker & Analitik`, 140, pageHeight - 10);
 
-  const filename = `Laporan_Harga_Emas_Kompas_${new Date().toISOString().slice(0, 10)}.pdf`;
+  const filename = `Laporan_Harga_Emas_Antam_${new Date().toISOString().slice(0, 10)}.pdf`;
   doc.save(filename);
 };

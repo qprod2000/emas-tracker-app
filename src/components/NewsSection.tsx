@@ -32,11 +32,11 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
               <Newspaper className="w-4 h-4" />
             </div>
             <h2 className="text-xl font-bold text-white tracking-tight">
-              Berita & Sentimen Harian Kompas.com
+              Berita & Sentimen Harian
             </h2>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Liputan ekonomi, moneter, dan pasar logam mulia terkini dari kanal Kompas Money & Bisnis
+            Liputan ekonomi, moneter, dan pasar logam mulia terkini
           </p>
         </div>
 
@@ -112,7 +112,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
                   rel="noreferrer"
                   className="text-amber-400 hover:text-amber-300 font-semibold inline-flex items-center gap-1"
                 >
-                  <span>Baca di Kompas</span>
+                  <span>Baca selengkapnya</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </div>

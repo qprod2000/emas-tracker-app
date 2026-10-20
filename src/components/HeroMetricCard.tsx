@@ -96,7 +96,7 @@ export const HeroMetricCard: React.FC<HeroMetricCardProps> = ({
                 </div>
                 <div>
                   <span className="text-xs uppercase font-semibold text-amber-400/90 tracking-wider">
-                    {isBuy ? 'Harga Acuan Beli Kompas' : 'Harga Acuan Jual Kembali (Buyback)'}
+                    {isBuy ? (data.isEstimate ? 'Estimasi Harga Beli Antam' : 'Harga Beli Antam (Logam Mulia)') : (data.buybackIsEstimate ? 'Estimasi Harga Buyback Antam' : 'Harga Buyback Antam')}
                   </span>
                   <div className="text-xs text-slate-400">1 Gram Emas Batangan 24K (99.99%)</div>
                 </div>
@@ -140,7 +140,7 @@ export const HeroMetricCard: React.FC<HeroMetricCardProps> = ({
             <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
               <span className="italic flex items-center gap-1">
                 <Info className="w-3 h-3 text-amber-400/80 shrink-0" />
-                *Harga dapat berubah sewaktu-waktu, mengacu pada informasi dari Antara dan Galeri 24.
+                *Harga dapat berubah sewaktu-waktu. Sumber: Logam Mulia (Antam).
               </span>
               <button
                 onClick={onOpenCalculator}

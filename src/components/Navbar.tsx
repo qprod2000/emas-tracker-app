@@ -52,14 +52,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-white text-base tracking-tight flex items-center gap-1.5">
-                  KOMPAS<span className="text-amber-400">.com</span>
+                  EMAS<span className="text-amber-400">.tracker</span>
                   <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/30">
                     Harga Emas
                   </span>
                 </span>
                 <span className="hidden md:inline-flex items-center gap-1 text-[11px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Live Sync
+                  {data.isEstimate ? 'Estimasi' : 'Data resmi'}
                 </span>
               </div>
               <div className="text-[11px] text-slate-400 flex items-center gap-1">
@@ -69,7 +69,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   target="_blank"
                   rel="noreferrer"
                   className="text-slate-400 hover:text-amber-300 inline-flex items-center gap-0.5 transition-colors"
-                  title="Buka halaman resmi kompas.com/harga-emas"
+                  title="Buka situs sumber harga"
                 >
                   <ExternalLink className="w-3 h-3 ml-1" />
                 </a>
@@ -131,7 +131,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             { id: 'bullion', label: 'Harga Batangan', icon: Layers },
             { id: 'calculator', label: 'Kalkulator & Pajak', icon: Calculator },
             { id: 'ai-prediction', label: 'Prediksi & Sentimen AI', icon: Sparkles },
-            { id: 'news', label: 'Berita Kompas', icon: Newspaper },
+            { id: 'news', label: 'Berita', icon: Newspaper },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;

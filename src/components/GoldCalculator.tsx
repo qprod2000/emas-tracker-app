@@ -100,7 +100,7 @@ export const GoldCalculator: React.FC<GoldCalculatorProps> = ({
   }, [direction, gramInput, rpInput, ratePerGram, taxRate, priceType]);
 
   const handleCopySummary = () => {
-    const text = `Simulasi Nilai Emas Kompas Tracker:
+    const text = `Simulasi Nilai Emas (Antam):
 - Jumlah: ${calculation.grams.toFixed(2)} gram
 - Acuan: ${selectedBrand} (${priceType === 'buy' ? 'Beli' : 'Jual/Buyback'})
 - Harga Satuan: ${formatRupiah(ratePerGram)}/gr
@@ -172,7 +172,7 @@ Diperbarui: ${data.lastUpdated}`;
             onChange={(e) => setSelectedBrand(e.target.value as any)}
             className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500/60"
           >
-            <option value="Kompas">Acuan Kompas.com (Rp {data.currentPrice.buy.toLocaleString('id-ID')})</option>
+            <option value="Kompas">Harga Antam (Rp {data.currentPrice.buy.toLocaleString('id-ID')})</option>
             <option value="Antam">Antam (CertiCard)</option>
             <option value="Galeri24">Galeri 24 (Pegadaian)</option>
             <option value="UBS">UBS Gold</option>
@@ -360,7 +360,7 @@ Diperbarui: ${data.lastUpdated}`;
 
       {/* Note faithful to Kompas screenshot */}
       <div className="text-[11px] text-slate-400 italic">
-        * Catatan: Harga emas dapat bervariasi tergantung outlet, biaya cetak, dan waktu transaksi. Kalkulator ini memberikan perkiraan transparan sesuai acuan pasar kompas.com.
+        * Catatan: Harga emas dapat bervariasi tergantung outlet, biaya cetak, dan waktu transaksi. Kalkulator ini memberikan perkiraan transparan sesuai acuan harga Antam (Logam Mulia).
       </div>
     </div>
   );

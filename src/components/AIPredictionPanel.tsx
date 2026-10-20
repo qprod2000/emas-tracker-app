@@ -41,7 +41,7 @@ export const AIPredictionPanel: React.FC<AIPredictionPanelProps> = ({
         <div className="max-w-md mx-auto">
           <h3 className="text-lg font-bold text-white">Aktifkan Analisis & Prediksi Harga AI</h3>
           <p className="text-xs text-slate-400 mt-1">
-            Gemini AI akan memproses riwayat teknikal emas dan menganalisis berita harian dari Kompas.com untuk memberikan perkiraan arah pergerakan harga.
+            Sistem menghitung indikator teknikal dari riwayat harga Antam, lalu AI menulis ringkasan narasinya.
           </p>
         </div>
         <button
@@ -69,10 +69,10 @@ export const AIPredictionPanel: React.FC<AIPredictionPanelProps> = ({
           </div>
           <div>
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              Prediksi Harga AI & Sentimen Berita Kompas
+              Proyeksi Harga & Analisis Teknikal
             </h2>
             <p className="text-xs text-slate-400">
-              Analisis deret waktu & sintesis sentimen berita harian Kompas Money & Global
+              Indikator dihitung dari data harga nyata (SMA, RSI, volatilitas); narasi ditulis AI
             </p>
           </div>
         </div>
@@ -261,7 +261,7 @@ export const AIPredictionPanel: React.FC<AIPredictionPanelProps> = ({
         <div className="lg:col-span-7 rounded-xl bg-slate-950/70 border border-slate-800 p-4 space-y-3">
           <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
             <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
-            Faktor Pendorong Berdasarkan Berita Kompas.com
+            Faktor Pendorong (Indikator Teknikal)
           </h3>
 
           <div className="space-y-2">
